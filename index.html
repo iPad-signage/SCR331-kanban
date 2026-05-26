@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>iPad デジタル看板</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            /* 背景画像（ファイル名は実際の画像に合わせてください） */
+            background-image: url('haikei.jpg'); 
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            
+            /* フォントの指定：英語はDIN、日本語は游ゴシックBold */
+            font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', 'Yu Gothic M', 'Yu Gothic', sans-serif;
+            font-weight: bold;
+            color: #000000; /* 文字色は黒 */
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 文字を配置する透明な箱（左から38%の位置を基準にして左詰め） */
+        .content-box {
+            position: absolute;
+            left: 38%;
+            top: 25%; /* 上からの開始位置 */
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* 左詰め */
+        }
+
+        /* 各項目の文字サイズと余白（マージン）の調整 */
+        .project {
+            font-size: 5.5vw;
+            margin-bottom: 5vh; /* 会社名との間のすきま */
+        }
+        .company {
+            font-size: 2.8vw;
+            margin-bottom: 1vh;
+        }
+        .clients {
+            font-size: 2.8vw;
+            margin-bottom: 6vh; /* 時間との間のすきま */
+        }
+        .time {
+            font-size: 3.5vw;
+            margin-bottom: 6vh; /* 作業者名との間のすきま */
+        }
+        .workers {
+            font-size: 2.8vw;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="content-box">
+        <div class="project" id="project"></div>
+        <div class="company" id="company"></div>
+        
+        <div class="clients">
+            <span id="client1"></span><span id="comma_client"></span><span id="client2"></span>
+        </div>
+        
+        <div class="time" id="time"></div>
+        
+        <div class="workers">
+            <span id="worker1"></span><span id="slash_worker"></span><span id="worker2"></span>
+        </div>
+    </div>
+
+    <script>
+        const GIST_ID = "fcada0a5444f5904771a838442ed9c7b";
+        
+        async function fetchSignageData() {
+            try {
+                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+                const gistData = await response.json();
+                
+                const contentString = gistData.files["signage.json"].content;
+                const data = JSON.parse(contentString);
+                
+                // 取得したデータを各場所に入れる
+                document.getElementById('project').innerText = data.project || "";
+                document.getElementById('company').innerText = data.company || "";
+                document.getElementById('client1').innerText = data.client1 || "";
+                document.getElementById('client2').innerText = data.client2 || "";
+                document.getElementById('time').innerText = data.time || "";
+                document.getElementById('worker1').innerText = data.worker1 || "";
+                document.getElementById('worker2').innerText = data.worker2 || "";
+
+                // ①だけ入力されて②が空欄のときは「、」や「 / 」を隠す処理
+                document.getElementById('comma_client').innerText = (data.client1 && data.client2) ? "、 " : "";
+                document.getElementById('slash_worker').innerText = (data.worker1 && data.worker2) ? " / " : "";
+
+            } catch (error) {
+                console.error("データの読み込みに失敗しました", error);
+            }
+        }
+
+        setInterval(fetchSignageData, 10000);
+        fetchSignageData();
+    </script>
+</body>
+</html>
