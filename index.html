@@ -16,42 +16,29 @@
             /* フォントの指定：英語はDIN、日本語は游ゴシックBold */
             font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', 'Yu Gothic M', 'Yu Gothic', sans-serif;
             font-weight: bold;
-            color: #000000; /* 文字色は黒 */
+            color: #000000;
             overflow: hidden;
             position: relative;
         }
 
-        /* 文字を配置する透明な箱（左から38%の位置を基準にして左詰め） */
+        /* 文字を配置する透明な箱（左詰め・隙間均等） */
         .content-box {
             position: absolute;
             left: 38%;
-            top: 25%; /* 上からの開始位置 */
+            top: 25%;
             width: 60%;
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* 左詰め */
+            align-items: flex-start;
+            gap: 4vh; /* 行間の調整はここ */
         }
 
-        /* 各項目の文字サイズと余白（マージン）の調整 */
-        .project {
-            font-size: 5.5vw;
-            margin-bottom: 5vh; /* 会社名との間のすきま */
-        }
-        .company {
-            font-size: 2.8vw;
-            margin-bottom: 1vh;
-        }
-        .clients {
-            font-size: 2.8vw;
-            margin-bottom: 6vh; /* 時間との間のすきま */
-        }
-        .time {
-            font-size: 3.5vw;
-            margin-bottom: 6vh; /* 作業者名との間のすきま */
-        }
-        .workers {
-            font-size: 2.8vw;
-        }
+        /* 各項目の文字サイズ */
+        .project { font-size: 5.5vw; }
+        .company { font-size: 2.8vw; }
+        .clients { font-size: 2.8vw; }
+        .time    { font-size: 3.5vw; }
+        .workers { font-size: 2.8vw; }
     </style>
 </head>
 <body>
@@ -64,7 +51,9 @@
             <span id="client1"></span><span id="comma_client"></span><span id="client2"></span>
         </div>
         
-        <div class="time" id="time"></div>
+        <div class="time">
+            <span id="start_time"></span><span id="tilde_time"></span><span id="end_time"></span>
+        </div>
         
         <div class="workers">
             <span id="worker1"></span><span id="slash_worker"></span><span id="worker2"></span>
@@ -82,18 +71,30 @@
                 const contentString = gistData.files["signage.json"].content;
                 const data = JSON.parse(contentString);
                 
-                // 取得したデータを各場所に入れる
+                // データを各場所に入れる
                 document.getElementById('project').innerText = data.project || "";
                 document.getElementById('company').innerText = data.company || "";
                 document.getElementById('client1').innerText = data.client1 || "";
                 document.getElementById('client2').innerText = data.client2 || "";
-                document.getElementById('time').innerText = data.time || "";
+                document.getElementById('start_time').innerText = data.start_time || "";
+                document.getElementById('end_time').innerText = data.end_time || "";
                 document.getElementById('worker1').innerText = data.worker1 || "";
                 document.getElementById('worker2').innerText = data.worker2 || "";
 
-                // ①だけ入力されて②が空欄のときは「、」や「 / 」を隠す処理
+                // ①だけ入力されて②が空欄のときの処理
                 document.getElementById('comma_client').innerText = (data.client1 && data.client2) ? "、 " : "";
                 document.getElementById('slash_worker').innerText = (data.worker1 && data.worker2) ? " / " : "";
+
+                // 時間の「〜」の表示・非表示の処理
+                const start = data.start_time || "";
+                const end = data.end_time || "";
+                if (start === "終日") {
+                    document.getElementById('tilde_time').innerText = ""; // 終日の場合は消す
+                } else if (start !== "" || end !== "") {
+                    document.getElementById('tilde_time').innerText = "〜"; // どちらかが入っていれば「〜」を表示
+                } else {
+                    document.getElementById('tilde_time').innerText = ""; // どちらも空欄なら消す
+                }
 
             } catch (error) {
                 console.error("データの読み込みに失敗しました", error);
