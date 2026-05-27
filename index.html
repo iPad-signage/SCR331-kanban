@@ -21,7 +21,6 @@
             position: relative;
         }
 
-        /* 全体の配置（gapを4vhから3vhに減らして、行が増えても下に伸びないように調整） */
         .content-box {
             position: absolute;
             left: 38%;
@@ -33,14 +32,12 @@
             gap: 3vh; 
         }
 
-        /* 会社・プロデューサー・PMをギュッとまとめる箱 */
         .company-client-group {
             display: flex;
             flex-direction: column;
             gap: 0.5vh; 
         }
 
-        /* 各項目の文字サイズ */
         .project { font-size: 5.5vw; }
         .company { font-size: 2.8vw; }
         .clients { font-size: 2.8vw; }
@@ -71,7 +68,6 @@
     <script>
         const GIST_ID = "fcada0a5444f5904771a838442ed9c7b";
         
-        // 名前と「様」と全角スペースを自動で作る便利機能
         function formatNames(name1, name2) {
             let n1 = name1 || "";
             let n2 = name2 || "";
@@ -83,37 +79,34 @@
 
         async function fetchSignageData() {
             try {
-                const response = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+                // 👇【ここが修正ポイント】URLの末尾に現在の時間をくっつけて「毎回違うURL」だとiPadに錯覚させ、強制的に最新データを取らせる最強の設定です
+                const url = `https://api.github.com/gists/${GIST_ID}?t=${new Date().getTime()}`;
+                const response = await fetch(url, { cache: "no-store" });
+                
                 const gistData = await response.json();
                 const data = JSON.parse(gistData.files["signage.json"].content);
                 
-                // 1. 案件名
                 const projEl = document.getElementById('project');
                 projEl.innerText = data.project || "";
-                projEl.style.display = data.project ? "block" : "none"; // 空なら隙間ごと隠す
+                projEl.style.display = data.project ? "block" : "none";
 
-                // 2. 会社名
                 const compEl = document.getElementById('company');
                 compEl.innerText = data.company || "";
                 compEl.style.display = data.company ? "block" : "none";
 
-                // 3. プロデューサー
                 const prodEl = document.getElementById('producers');
                 const prodText = formatNames(data.producer1, data.producer2);
                 prodEl.innerText = prodText;
                 prodEl.style.display = prodText ? "block" : "none";
 
-                // 4. PM
                 const pmEl = document.getElementById('pms');
                 const pmText = formatNames(data.pm1, data.pm2);
                 pmEl.innerText = pmText;
                 pmEl.style.display = pmText ? "block" : "none";
 
-                // グループ内に何もない時はグループごと隠す
                 document.getElementById('company_group').style.display = 
                     (data.company || prodText || pmText) ? "flex" : "none";
 
-                // 5. 時間
                 const start = data.start_time || "";
                 const end = data.end_time || "";
                 const timeBlock = document.getElementById('time_block');
@@ -131,7 +124,6 @@
                     }
                 }
 
-                // 6. 作業者名
                 const w1 = data.worker1 || "";
                 const w2 = data.worker2 || "";
                 const wBlock = document.getElementById('workers');
