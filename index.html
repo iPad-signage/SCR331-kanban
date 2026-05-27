@@ -52,7 +52,7 @@
         .workers { font-size: 2.8vw; }
         
         /* 連続する半角スペースをそのまま表示させるための設定 */
-        #tilde_time {
+        #tilde_time, #comma_client {
             white-space: pre;
         }
     </style>
@@ -91,14 +91,21 @@
                 
                 document.getElementById('project').innerText = data.project || "";
                 document.getElementById('company').innerText = data.company || "";
-                document.getElementById('client1').innerText = data.client1 || "";
-                document.getElementById('client2').innerText = data.client2 || "";
+                
+                // 👇 お客様名に「半角スペース＋様」を自動追加する処理
+                const c1 = data.client1 || "";
+                const c2 = data.client2 || "";
+                document.getElementById('client1').innerText = c1 ? c1 + " 様" : "";
+                document.getElementById('client2').innerText = c2 ? c2 + " 様" : "";
+
+                // 👇 ①と②の両方がある場合、間を「、」ではなく「全角スペース」にする
+                document.getElementById('comma_client').innerText = (c1 && c2) ? "　" : "";
+
                 document.getElementById('start_time').innerText = data.start_time || "";
                 document.getElementById('end_time').innerText = data.end_time || "";
                 document.getElementById('worker1').innerText = data.worker1 || "";
                 document.getElementById('worker2').innerText = data.worker2 || "";
 
-                document.getElementById('comma_client').innerText = (data.client1 && data.client2) ? "、 " : "";
                 document.getElementById('slash_worker').innerText = (data.worker1 && data.worker2) ? " / " : "";
 
                 const start = data.start_time || "";
@@ -106,7 +113,6 @@
                 if (start === "終日") {
                     document.getElementById('tilde_time').innerText = "";
                 } else if (start !== "" || end !== "") {
-                    // 👇 ここに半角スペースを追加しました！
                     document.getElementById('tilde_time').innerText = " 〜 ";
                 } else {
                     document.getElementById('tilde_time').innerText = "";
