@@ -13,13 +13,11 @@
         body {
             margin: 0;
             padding: 0;
-            /* 背景画像（ファイル名は実際の画像に合わせてください） */
             background-image: url('haikei.jpg'); 
             background-size: cover;
             background-position: center;
             height: 100vh;
             
-            /* フォントの指定：英語はDIN、日本語は游ゴシックBold */
             font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', 'Yu Gothic M', 'Yu Gothic', sans-serif;
             font-weight: bold;
             color: #000000;
@@ -27,7 +25,7 @@
             position: relative;
         }
 
-        /* 文字を配置する透明な箱（左詰め・隙間均等） */
+        /* 全体の配置（案件名、会社・客セット、時間、作業者の4つの間隔） */
         .content-box {
             position: absolute;
             left: 38%;
@@ -36,7 +34,14 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 4vh; /* 行間の調整はここ */
+            gap: 4vh; /* 大きなまとまり同士の行間 */
+        }
+
+        /* 👇 今回追加：会社名とお客様名をセットにする箱 */
+        .company-client-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5vh; /* 👈 ここが会社名とお客様名の「間」の距離です！数字を小さくするとさらに詰まります */
         }
 
         /* 各項目の文字サイズ */
@@ -51,10 +56,12 @@
 
     <div class="content-box">
         <div class="project" id="project"></div>
-        <div class="company" id="company"></div>
         
-        <div class="clients">
-            <span id="client1"></span><span id="comma_client"></span><span id="client2"></span>
+        <div class="company-client-group">
+            <div class="company" id="company"></div>
+            <div class="clients">
+                <span id="client1"></span><span id="comma_client"></span><span id="client2"></span>
+            </div>
         </div>
         
         <div class="time">
@@ -77,7 +84,6 @@
                 const contentString = gistData.files["signage.json"].content;
                 const data = JSON.parse(contentString);
                 
-                // データを各場所に入れる
                 document.getElementById('project').innerText = data.project || "";
                 document.getElementById('company').innerText = data.company || "";
                 document.getElementById('client1').innerText = data.client1 || "";
@@ -87,19 +93,17 @@
                 document.getElementById('worker1').innerText = data.worker1 || "";
                 document.getElementById('worker2').innerText = data.worker2 || "";
 
-                // ①だけ入力されて②が空欄のときの処理
                 document.getElementById('comma_client').innerText = (data.client1 && data.client2) ? "、 " : "";
                 document.getElementById('slash_worker').innerText = (data.worker1 && data.worker2) ? " / " : "";
 
-                // 時間の「〜」の表示・非表示の処理
                 const start = data.start_time || "";
                 const end = data.end_time || "";
                 if (start === "終日") {
-                    document.getElementById('tilde_time').innerText = ""; // 終日の場合は消す
+                    document.getElementById('tilde_time').innerText = "";
                 } else if (start !== "" || end !== "") {
-                    document.getElementById('tilde_time').innerText = "〜"; // どちらかが入っていれば「〜」を表示
+                    document.getElementById('tilde_time').innerText = "〜";
                 } else {
-                    document.getElementById('tilde_time').innerText = ""; // どちらも空欄なら消す
+                    document.getElementById('tilde_time').innerText = "";
                 }
 
             } catch (error) {
