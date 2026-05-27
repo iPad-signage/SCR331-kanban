@@ -79,12 +79,16 @@
 
         async function fetchSignageData() {
             try {
-                // 👇【ここが修正ポイント】URLの末尾に現在の時間をくっつけて「毎回違うURL」だとiPadに錯覚させ、強制的に最新データを取らせる最強の設定です
-                const url = `https://api.github.com/gists/${GIST_ID}?t=${new Date().getTime()}`;
+                // 👇 【ここが最強の修正ポイント】APIの制限を回避する「直接リンク（Raw）」に変更しました！
+                const url = `https://gist.githubusercontent.com/raw/${GIST_ID}/signage.json?t=${new Date().getTime()}`;
                 const response = await fetch(url, { cache: "no-store" });
                 
-                const gistData = await response.json();
-                const data = JSON.parse(gistData.files["signage.json"].content);
+                if (!response.ok) {
+                    throw new Error("データの取得に失敗しました");
+                }
+
+                // 直接JSONデータを受け取るので、処理もシンプル・高速になります
+                const data = await response.json();
                 
                 const projEl = document.getElementById('project');
                 projEl.innerText = data.project || "";
@@ -136,10 +140,11 @@
                 wBlock.style.display = wText ? "block" : "none";
 
             } catch (error) {
-                console.error("データの読み込みに失敗しました", error);
+                console.error("通信エラーを検知しました", error);
             }
         }
 
+        // 制限のないルートになったので、10秒ごとの更新でも全く問題ありません
         setInterval(fetchSignageData, 10000);
         fetchSignageData();
     </script>
