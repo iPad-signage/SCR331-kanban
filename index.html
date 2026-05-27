@@ -25,7 +25,7 @@
             position: relative;
         }
 
-        /* 全体の配置（案件名、会社・客セット、時間、作業者の4つの間隔） */
+        /* 全体の配置 */
         .content-box {
             position: absolute;
             left: 38%;
@@ -34,14 +34,14 @@
             display: flex;
             flex-direction: column;
             align-items: flex-start;
-            gap: 4vh; /* 大きなまとまり同士の行間 */
+            gap: 4vh; 
         }
 
-        /* 👇 今回追加：会社名とお客様名をセットにする箱 */
+        /* 会社名とお客様名をセットにする箱 */
         .company-client-group {
             display: flex;
             flex-direction: column;
-            gap: 0.5vh; /* 👈 ここが会社名とお客様名の「間」の距離です！数字を小さくするとさらに詰まります */
+            gap: 0.5vh; 
         }
 
         /* 各項目の文字サイズ */
@@ -50,6 +50,11 @@
         .clients { font-size: 2.8vw; }
         .time    { font-size: 3.5vw; }
         .workers { font-size: 2.8vw; }
+        
+        /* 連続する半角スペースをそのまま表示させるための設定 */
+        #tilde_time {
+            white-space: pre;
+        }
     </style>
 </head>
 <body>
@@ -101,7 +106,8 @@
                 if (start === "終日") {
                     document.getElementById('tilde_time').innerText = "";
                 } else if (start !== "" || end !== "") {
-                    document.getElementById('tilde_time').innerText = "〜";
+                    // 👇 ここに半角スペースを追加しました！
+                    document.getElementById('tilde_time').innerText = " 〜 ";
                 } else {
                     document.getElementById('tilde_time').innerText = "";
                 }
