@@ -7,43 +7,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>iPad デジタル看板</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-image: url('haikei.jpg'); 
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', 'Yu Gothic M', 'Yu Gothic', sans-serif;
-            font-weight: bold;
-            color: #000000;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .content-box {
-            position: absolute;
-            left: 38%;
-            top: 25%;
-            width: 60%;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 3vh; 
-        }
-
-        .company-client-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5vh; 
-        }
-
+        body { margin: 0; padding: 0; background-image: url('haikei.jpg'); background-size: cover; background-position: center; height: 100vh; font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', 'Yu Gothic M', 'Yu Gothic', sans-serif; font-weight: bold; color: #000000; overflow: hidden; position: relative; }
+        .content-box { position: absolute; left: 38%; top: 25%; width: 60%; display: flex; flex-direction: column; align-items: flex-start; gap: 3vh; }
+        .company-client-group { display: flex; flex-direction: column; gap: 0.5vh; }
         .project { font-size: 5.5vw; }
         .company { font-size: 2.8vw; }
         .clients { font-size: 2.8vw; }
         .time    { font-size: 3.5vw; }
         .workers { font-size: 2.8vw; }
-        
         #tilde_time { white-space: pre; }
     </style>
 </head>
@@ -51,100 +22,76 @@
 
     <div class="content-box">
         <div class="project" id="project"></div>
-        
         <div class="company-client-group" id="company_group">
             <div class="company" id="company"></div>
             <div class="clients" id="producers"></div>
             <div class="clients" id="pms"></div>
         </div>
-        
         <div class="time" id="time_block">
             <span id="start_time"></span><span id="tilde_time"></span><span id="end_time"></span>
         </div>
-        
         <div class="workers" id="workers"></div>
     </div>
 
     <script>
         const GIST_ID = "fcada0a5444f5904771a838442ed9c7b";
         
-        function formatNames(name1, name2) {
-            let n1 = name1 || "";
-            let n2 = name2 || "";
-            if (n1 && n2) return n1 + " 様　" + n2 + " 様";
-            if (n1) return n1 + " 様";
-            if (n2) return n2 + " 様";
-            return "";
-        }
+        // 💡 Helper: 様を付ける処理
+        const formatNames = (n1, n2) => [n1, n2].filter(Boolean).map(n => `${n} 様`).join("　");
+
+        // 💡 Helper: 作業者（3人対応）のテキストを作る処理
+        const formatWorkers = (w1, w2, w3) => {
+            const arr = [w1, w2, w3].filter(Boolean);
+            if (arr.length === 3) return `${w1} / ${w2.split(" ")[0]}・${w3.split(" ")[0]}`;
+            return arr.join(" / ");
+        };
+
+        // 💡 Helper: テキストを入れて、空なら非表示にする処理
+        const updateUI = (id, text) => {
+            const el = document.getElementById(id);
+            el.innerText = text || "";
+            el.style.display = text ? "block" : "none";
+        };
 
         async function fetchSignageData() {
             try {
-                // 👇 【ここが最強の修正ポイント】APIの制限を回避する「直接リンク（Raw）」に変更しました！
-                const url = `https://gist.githubusercontent.com/raw/${GIST_ID}/signage.json?t=${new Date().getTime()}`;
-                const response = await fetch(url, { cache: "no-store" });
+                const response = await fetch(`https://gist.githubusercontent.com/raw/${GIST_ID}/signage.json?t=${Date.now()}`, { cache: "no-store" });
+                if (!response.ok) throw new Error("データの取得に失敗");
                 
-                if (!response.ok) {
-                    throw new Error("データの取得に失敗しました");
-                }
-
-                // 直接JSONデータを受け取るので、処理もシンプル・高速になります
                 const data = await response.json();
+                const { project, company, producer1, producer2, pm1, pm2, start_time, end_time, worker1, worker2, worker3 } = data;
                 
-                const projEl = document.getElementById('project');
-                projEl.innerText = data.project || "";
-                projEl.style.display = data.project ? "block" : "none";
+                // --- 1. 基本情報の更新 ---
+                updateUI('project', project);
+                updateUI('company', company);
+                
+                const prodText = formatNames(producer1, producer2);
+                const pmText = formatNames(pm1, pm2);
+                updateUI('producers', prodText);
+                updateUI('pms', pmText);
+                
+                // 会社、P、PMのどれかがあればグループを表示
+                document.getElementById('company_group').style.display = (company || prodText || pmText) ? "flex" : "none";
 
-                const compEl = document.getElementById('company');
-                compEl.innerText = data.company || "";
-                compEl.style.display = data.company ? "block" : "none";
-
-                const prodEl = document.getElementById('producers');
-                const prodText = formatNames(data.producer1, data.producer2);
-                prodEl.innerText = prodText;
-                prodEl.style.display = prodText ? "block" : "none";
-
-                const pmEl = document.getElementById('pms');
-                const pmText = formatNames(data.pm1, data.pm2);
-                pmEl.innerText = pmText;
-                pmEl.style.display = pmText ? "block" : "none";
-
-                document.getElementById('company_group').style.display = 
-                    (data.company || prodText || pmText) ? "flex" : "none";
-
-                const start = data.start_time || "";
-                const end = data.end_time || "";
+                // --- 2. 時間の更新 ---
                 const timeBlock = document.getElementById('time_block');
-                
-                if (!start && !end) {
+                if (!start_time && !end_time) {
                     timeBlock.style.display = "none";
                 } else {
                     timeBlock.style.display = "block";
-                    document.getElementById('start_time').innerText = start;
-                    document.getElementById('end_time').innerText = end;
-                    if (start === "終日") {
-                        document.getElementById('tilde_time').innerText = "";
-                    } else {
-                        document.getElementById('tilde_time').innerText = " 〜 ";
-                    }
+                    document.getElementById('start_time').innerText = start_time || "";
+                    document.getElementById('end_time').innerText = end_time || "";
+                    document.getElementById('tilde_time').innerText = (start_time === "終日") ? "" : " 〜 ";
                 }
 
-                const w1 = data.worker1 || "";
-                const w2 = data.worker2 || "";
-                const wBlock = document.getElementById('workers');
-                let wText = "";
-                if (w1 && w2) wText = w1 + " / " + w2;
-                else if (w1) wText = w1;
-                else if (w2) wText = w2;
-                
-                wBlock.innerText = wText;
-                wBlock.style.display = wText ? "block" : "none";
+                // --- 3. 作業者の更新 ---
+                updateUI('workers', formatWorkers(worker1, worker2, worker3));
 
             } catch (error) {
-                console.error("通信エラーを検知しました", error);
+                console.error("通信エラー:", error);
             }
         }
 
-        // 制限のないルートになったので、10秒ごとの更新でも全く問題ありません
         setInterval(fetchSignageData, 10000);
         fetchSignageData();
     </script>
