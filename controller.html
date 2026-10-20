@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SCR331 informationboard controller</title>
+    
+    <link rel="apple-touch-icon" href="SCR331_information_icon.png">
+    <link rel="icon" href="SCR331_information_icon.png">
+
+    <style>
+        :root {
+            color-scheme: light; 
+            --primary: #2563eb; 
+            --primary-hover: #1d4ed8;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --input-bg: #f9fafb;
+            --btn-clear: #f3f4f6;
+            --btn-clear-hover: #e5e7eb;
+            --btn-clear-text: #4b5563;
+        }
+
+        [data-theme='dark'] {
+            color-scheme: dark; 
+            --primary: #3b82f6; 
+            --primary-hover: #60a5fa;
+            --bg: #11161d;         
+            --card-bg: #1a212b;    
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #28323f;     
+            --input-bg: #0d1117;   
+            --btn-clear: #11161d;
+            --btn-clear-hover: #28323f;
+            --btn-clear-text: #94a3b8;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --primary: #3b82f6; --primary-hover: #60a5fa;
+                --bg: #11161d; --card-bg: #1a212b;    
+                --text-main: #f8fafc; --text-muted: #94a3b8;
+                --border: #28323f; --input-bg: #0d1117;   
+                --btn-clear: #11161d; --btn-clear-hover: #28323f;
+                --btn-clear-text: #94a3b8;
+            }
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg); color: var(--text-main); display: flex; justify-content: center; padding: 20px; margin: 0; flex-direction: column; align-items: center; transition: background-color 0.3s, color 0.3s; -webkit-overflow-scrolling: touch; }
+        .container { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); width: 100%; max-width: 500px; position: relative; box-sizing: border-box; transition: background-color 0.3s, border-color 0.3s; }
+        h2 { text-align: center; color: var(--text-main); margin-top: 0; margin-bottom: 25px; font-weight: 700; font-size: 22px; }
+        .top-actions { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-bottom: 20px; height: 36px; }
+        #theme_toggle { background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; padding: 0; margin: 0; box-sizing: border-box; }
+        #theme_toggle:hover { background: var(--bg); }
+        #theme_toggle svg { width: 18px; height: 18px; stroke: currentColor; display: block; }
+        button.history-btn { background: transparent; color: var(--primary); border: 1px solid var(--primary); border-radius: 8px; padding: 0 15px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; margin: 0; width: auto; height: 36px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; line-height: 1; }
+        button.history-btn:hover { background: var(--primary); color: #fff; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 13px; color: var(--text-muted); }
+        .sub-label { font-size: 11px; font-weight: normal; opacity: 0.8; }
+        input[type="text"], input[type="password"], select { width: 100%; padding: 12px 15px; font-size: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-main); outline: none; transition: 0.2s; font-weight: 600; }
+        input[type="text"]:focus, input[type="password"]:focus, select:focus { border-color: var(--primary); background: var(--card-bg); }
+        select { -webkit-appearance: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 15px center; background-size: 16px; padding-right: 45px; }
+        input[list]::-webkit-calendar-picker-indicator { cursor: pointer; margin-right: 5px; }
+        .custom-input { display: none; margin-top: 8px; }
+        button { width: 100%; padding: 16px; font-size: 16px; font-weight: bold; color: #fff; background-color: var(--primary); border: none; border-radius: 8px; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        button:hover { background-color: var(--primary-hover); }
+        button.clear-btn { background-color: var(--btn-clear); color: var(--btn-clear-text); margin-top: 12px; font-size: 14px; padding: 14px; }
+        button.clear-btn:hover { background-color: var(--btn-clear-hover); }
+        #status { text-align: center; font-weight: bold; margin-top: 20px; font-size: 15px; }
+        .section-divider { border-top: 1px solid var(--border); margin: 20px 0; }
+        .checkbox-group { display: flex; align-items: center; margin-bottom: 10px; }
+        .checkbox-group input { width: 18px; height: 18px; accent-color: var(--primary); margin-right: 8px; cursor: pointer; }
+        .checkbox-group label { margin-bottom: 0; cursor: pointer; color: var(--text-main); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: var(--card-bg); padding: 30px; border-radius: 16px; width: 95%; max-width: 500px; max-height: 85vh; overflow-y: auto; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.3); color: var(--text-main); border: 1px solid var(--border); }
+        .modal-close { position: absolute; top: 18px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-muted); line-height: 1; transition: 0.2s; }
+        .modal-close:hover { color: var(--text-main); }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        .history-item:last-child { border-bottom: none; }
+        .history-info { font-size: 14px; line-height: 1.5; color: var(--text-main); width: 60%; }
+        .history-info strong { color: var(--primary); font-size: 12px; }
+        .history-btn-group { display: flex; gap: 8px; }
+        button.restore-btn { background-color: var(--primary); color: white; padding: 8px 12px; font-size: 13px; border-radius: 6px; width: auto; margin: 0; }
+        button.restore-btn:hover { background-color: var(--primary-hover); }
+        button.delete-btn { background-color: transparent; border: 1px solid #ef4444; color: #ef4444; padding: 8px 12px; font-size: 13px; border-radius: 6px; width: auto; margin: 0; transition: 0.2s; }
+        button.delete-btn:hover { background-color: #ef4444; color: #fff; }
+        #confirm_modal { z-index: 1100; }
+        .confirm-btns { display: flex; gap: 15px; justify-content: center; margin-top: 25px; }
+        .confirm-btns button { padding: 12px 20px; font-size: 14px; margin: 0; width: 100%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+
+<div id="loading" style="text-align:center; margin-top:50px; font-weight:bold; color:var(--primary);">データを読み込んでいます...</div>
+
+<div id="login_container" class="container" style="display: none; margin-top: 50px;">
+    <h2>SCR331 informationboard</h2>
+    <div style="height: 10px;"></div>
+    <div class="form-group">
+        <label>パスワード</label>
+        <input type="password" id="password_field" placeholder="パスワードを入力" onkeypress="if(event.key === 'Enter') verifyPassword();">
+    </div>
+    <div class="checkbox-group" style="margin-top: 15px; margin-bottom: 10px;">
+        <input type="checkbox" id="show_password" onchange="togglePassword()">
+        <label for="show_password">パスワードを表示</label>
+    </div>
+    <button onclick="verifyPassword()">ログイン</button>
+    <div id="login_status" style="text-align: center; color: #ef4444; margin-top: 15px; font-weight: 600; font-size: 14px;"></div>
+</div>
+
+<div class="container" id="main_container" style="display: none;">
+    <h2>SCR331 informationboard</h2>
+    
+    <div class="top-actions">
+        <button id="theme_toggle" onclick="toggleTheme()" title="テーマ切り替え">
+            <svg id="icon_sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg id="icon_moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+        <button onclick="openHistory()" class="history-btn">過去の履歴から復元</button>
+    </div>
+    
+    <div class="form-group">
+        <label>案件名 <span class="sub-label">（〇〇組など）</span></label>
+        <input type="text" id="project">
+    </div>
+    
+    <div class="form-group">
+        <label>会社名</label>
+        <input type="text" id="company" list="company_list" autocomplete="off" placeholder="入力または選択">
+        <datalist id="company_list"></datalist>
+    </div>
+    
+    <div class="section-divider"></div>
+    
+    <div class="form-group"><label>プロデューサー①</label><input type="text" id="producer1"></div>
+    <div class="form-group"><label>プロデューサー②</label><input type="text" id="producer2"></div>
+    <div class="form-group"><label>PM①</label><input type="text" id="pm1"></div>
+    <div class="form-group"><label>PM②</label><input type="text" id="pm2"></div>
+    
+    <div class="section-divider"></div>
+    
+    <div class="checkbox-group" style="margin-bottom: 15px;">
+        <input type="checkbox" id="all_day" onchange="toggleAllDay(this)">
+        <label for="all_day" style="font-weight:600;">終日作業にする</label>
+    </div>
+    
+    <div class="form-group"><label>開始時間</label><select id="start_time" onchange="updateEndTimeOptions()"></select></div>
+    <div class="form-group"><label>終了時間</label><select id="end_time"></select></div>
+    
+    <div class="section-divider"></div>
+    
+    <div class="form-group">
+        <label>作業者名①</label>
+        <select id="worker1_select" onchange="toggleCustom(1)"></select>
+        <input type="text" id="worker1_custom" class="custom-input" placeholder="名前を直接入力">
+    </div>
+    <div class="form-group">
+        <label>作業者名②</label>
+        <select id="worker2_select" onchange="toggleCustom(2)"></select>
+        <input type="text" id="worker2_custom" class="custom-input" placeholder="名前を直接入力">
+    </div>
+    <div class="form-group">
+        <label>作業者名③</label>
+        <select id="worker3_select" onchange="toggleCustom(3)"></select>
+        <input type="text" id="worker3_custom" class="custom-input" placeholder="名前を直接入力">
+    </div>
+
+    <button onclick="sendData()">iPadに送信する</button>
+    <button onclick="clearAndSend()" class="clear-btn">表示をすべてクリア（白紙に戻す）</button>
+    <div id="status"></div>
+</div>
+
+<div id="history_modal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="modal-close" onclick="closeHistory()">✕</span>
+        <h3 style="margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;">送信履歴</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top:-10px;">復元ボタンを押すと入力欄にセットされます</p>
+        <div id="history_list"></div>
+    </div>
+</div>
+
+<div id="confirm_modal" class="modal-overlay">
+    <div class="modal-content" style="text-align: center; padding: 30px; max-width: 320px;">
+        <h3 style="margin-top:0; border-bottom: none; font-size:18px;">履歴の削除</h3>
+        <p style="color:var(--text-muted); font-size:14px;">この履歴を完全に削除しますか？<br>この操作は取り消せません。</p>
+        <div class="confirm-btns">
+            <button onclick="closeConfirmModal()" style="background-color: var(--btn-clear); color: var(--btn-clear-text);">キャンセル</button>
+            <button onclick="executeDelete()" style="background-color: #ef4444; color: #fff;">削除する</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ★ ご自身のGitHub環境に合わせて書き換えてください ★
+    const GITHUB_CONFIG = {
+        token: "YOUR_GITHUB_TOKEN",     // Personal Access Token (repo権限)
+        owner: "YOUR_GITHUB_USERNAME",  // ユーザー名 or Organization名
+        repo: "YOUR_REPOSITORY_NAME",   // リポジトリ名
+        path: "data.json"
+    };
+    const API_URL = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+
+    let cloudData = null;
+    let currentFileSha = null;
+    let APP_PASSWORD = ""; 
+    let workerList = [];
+    let deleteTargetRow = -1; 
+
+    const timeSlots = Array.from({ length: 49 }, (_, i) => {
+        const h = Math.floor(i / 2) + 6;
+        const m = i % 2 === 0 ? "00" : "30";
+        return `${h}:${m}`;
+    }).filter(t => t !== "30:30");
+
+    function initTheme() {
+        const saved = localStorage.getItem('theme');
+        if (saved) document.documentElement.setAttribute('data-theme', saved);
+        updateThemeIcon();
+    }
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let newTheme = (current === 'dark' || (!current && isSystemDark)) ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeIcon();
+    }
+    function updateThemeIcon() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const isSystemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isDark = current === 'dark' || (!current && isSystemDark);
+        document.getElementById('icon_sun').style.display = isDark ? 'none' : 'block';
+        document.getElementById('icon_moon').style.display = isDark ? 'block' : 'none';
+    }
+
+    // GitHubからデータを取得する
+    async function fetchGitHubData() {
+        const res = await fetch(API_URL, {
+            headers: {
+                "Authorization": `token ${GITHUB_CONFIG.token}`,
+                "Accept": "application/vnd.github.v3+json",
+                "Cache-Control": "no-cache"
+            }
+        });
+        if (!res.ok) throw new Error("GitHub通信エラー");
+        const json = await res.json();
+        currentFileSha = json.sha;
+        cloudData = JSON.parse(decodeURIComponent(escape(atob(json.content))));
+        return cloudData;
+    }
+
+    // GitHubへデータを上書き保存する
+    async function updateGitHubData() {
+        const body = {
+            message: "Update signage data via controller",
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(cloudData, null, 2)))),
+            sha: currentFileSha
+        };
+        const res = await fetch(API_URL, {
+            method: "PUT",
+            headers: {
+                "Authorization": `token ${GITHUB_CONFIG.token}`,
+                "Accept": "application/vnd.github.v3+json"
+            },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error("GitHubデータ保存エラー");
+        const json = await res.json();
+        currentFileSha = json.content.sha; // 次の保存用にSHAを更新
+    }
+
+    window.onload = async () => {
+        initTheme();
+        if (GITHUB_CONFIG.token === "YOUR_GITHUB_TOKEN") {
+            document.getElementById('loading').innerText = "エラー: GITHUB_CONFIGが設定されていません。";
+            return;
+        }
+
+        try {
+            await fetchGitHubData();
+            APP_PASSWORD = cloudData.password || "000";
+            workerList = cloudData.workers || [];
+            
+            const companyDataList = document.getElementById('company_list');
+            (cloudData.companies || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                companyDataList.appendChild(opt);
+            });
+
+            workerList.unshift("");
+            workerList.push("カスタム（手入力）");
+
+            const startSelect = document.getElementById('start_time');
+            startSelect.add(new Option("（選択なし）", ""));
+            timeSlots.forEach(t => startSelect.add(new Option(t, t)));
+            updateEndTimeOptions();
+
+            [1, 2, 3].forEach(num => {
+                const select = document.getElementById(`worker${num}_select`);
+                workerList.forEach(w => select.add(new Option(w || "（選択なし）", w)));
+            });
+
+            document.getElementById('loading').style.display = 'none';
+            
+            if (sessionStorage.getItem('signage_logged_in') === 'true') {
+                document.getElementById('main_container').style.display = 'block';
+                populateForm(cloudData.current || {});
+                window.scrollTo(0, 0); 
+            } else {
+                document.getElementById('login_container').style.display = 'block';
+            }
+        } catch (err) {
+            document.getElementById('loading').innerText = "初期ロードエラー: " + err.message;
+            document.getElementById('loading').style.color = "#ef4444";
+        }
+    }
+
+    function verifyPassword() {
+        if (document.getElementById('password_field').value === APP_PASSWORD) {
+            sessionStorage.setItem('signage_logged_in', 'true'); 
+            document.getElementById('login_container').style.display = 'none';
+            document.getElementById('main_container').style.display = 'block';
+            populateForm(cloudData.current || {});
+            window.scrollTo(0, 0); 
+        } else {
+            document.getElementById('login_status').innerText = "パスワードが違います。";
+        }
+    }
+
+    function togglePassword() {
+        const passField = document.getElementById('password_field');
+        passField.type = document.getElementById('show_password').checked ? "text" : "password";
+    }
+
+    function updateEndTimeOptions() {
+        const startSelect = document.getElementById('start_time');
+        const endSelect = document.getElementById('end_time');
+        const startVal = startSelect.value;
+        endSelect.innerHTML = '';
+        endSelect.add(new Option("（選択なし）", ""));
+        const startIndex = startVal ? timeSlots.indexOf(startVal) : -1;
+        if (startIndex !== -1) {
+            timeSlots.slice(startIndex + 1).forEach(t => endSelect.add(new Option(t, t)));
+        }
+    }
+
+    function toggleAllDay(checkbox) {
+        document.getElementById('start_time').disabled = checkbox.checked;
+        document.getElementById('end_time').disabled = checkbox.checked;
+    }
+
+    function toggleCustom(num, isInit = false) {
+        const isCustom = document.getElementById(`worker${num}_select`).value === "カスタム（手入力）";
+        const input = document.getElementById(`worker${num}_custom`);
+        input.style.display = isCustom ? "block" : "none";
+        if (isCustom && !isInit) input.focus();
+        else if (!isCustom) input.value = "";
+    }
+
+    function getWorkerValue(num) {
+        const selectVal = document.getElementById(`worker${num}_select`).value;
+        return selectVal === "カスタム（手入力）" ? document.getElementById(`worker${num}_custom`).value : selectVal;
+    }
+
+    function populateForm(data) {
+        document.getElementById('project').value = data.project === " " ? "" : (data.project || "");
+        document.getElementById('company').value = data.company || "";
+        document.getElementById('producer1').value = data.producer1 || "";
+        document.getElementById('producer2').value = data.producer2 || "";
+        document.getElementById('pm1').value = data.pm1 || "";
+        document.getElementById('pm2').value = data.pm2 || "";
+
+        const allDayCheck = document.getElementById('all_day');
+        if (data.start_time === "終日") {
+            allDayCheck.checked = true;
+            toggleAllDay(allDayCheck);
+        } else {
+            allDayCheck.checked = false;
+            toggleAllDay(allDayCheck);
+            document.getElementById('start_time').value = data.start_time || "";
+            updateEndTimeOptions();
+            document.getElementById('end_time').value = data.end_time || "";
+        }
+
+        const setWorker = (num, val) => {
+            const selectEl = document.getElementById(`worker${num}_select`);
+            if (!val) {
+                selectEl.value = "";
+                toggleCustom(num, true); 
+            } else if (workerList.includes(val)) {
+                selectEl.value = val;
+                toggleCustom(num, true);
+            } else {
+                selectEl.value = "カスタム（手入力）";
+                toggleCustom(num, true);
+                document.getElementById(`worker${num}_custom`).value = val;
+            }
+        };
+        
+        setWorker(1, data.worker1);
+        setWorker(2, data.worker2);
+        setWorker(3, data.worker3);
+    }
+
+    function renderHistoryList() {
+        const listEl = document.getElementById('history_list');
+        const history = cloudData.history || [];
+
+        listEl.innerHTML = '';
+        if (history.length === 0) {
+            listEl.innerHTML = '<p style="text-align:center; margin-top: 40px; color:var(--text-muted);">まだ履歴がありません</p>';
+        } else {
+            history.forEach((item, index) => {
+                const d = item.data;
+                const titleText = `・ ${d.project || '名称未入力'} ${d.company ? `(${d.company})` : ''}`;
+
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-info">
+                        <strong>${item.time}</strong><br>
+                        ${titleText}
+                    </div>
+                    <div class="history-btn-group">
+                        <button class="restore-btn" onclick="restoreHistory(${index})">復元</button>
+                        <button class="delete-btn" onclick="openConfirmModal(${index})">削除</button>
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+    }
+
+    function openHistory() {
+        document.getElementById('history_modal').style.display = "flex";
+        renderHistoryList();
+    }
+    function closeHistory() {
+        document.getElementById('history_modal').style.display = "none";
+    }
+    function restoreHistory(index) {
+        if (cloudData.history[index]) {
+            populateForm(cloudData.history[index].data);
+            closeHistory(); 
+        }
+    }
+
+    function openConfirmModal(index) {
+        deleteTargetRow = index;
+        document.getElementById('confirm_modal').style.display = "flex";
+    }
+    function closeConfirmModal() {
+        deleteTargetRow = -1;
+        document.getElementById('confirm_modal').style.display = "none";
+    }
+    async function executeDelete() {
+        if (deleteTargetRow !== -1) {
+            cloudData.history.splice(deleteTargetRow, 1);
+            try {
+                await updateGitHubData();
+                renderHistoryList();
+                closeConfirmModal();
+            } catch (err) {
+                alert("削除に失敗しました: " + err.message);
+            }
+        }
+    }
+
+    function clearAndSend() {
+        ['project', 'company', 'producer1', 'producer2', 'pm1', 'pm2'].forEach(id => document.getElementById(id).value = "");
+        document.getElementById('all_day').checked = false;
+        toggleAllDay(document.getElementById('all_day'));
+        document.getElementById('start_time').value = "";
+        updateEndTimeOptions();
+        [1, 2, 3].forEach(num => { document.getElementById(`worker${num}_select`).value = ""; toggleCustom(num); });
+        sendData();
+    }
+
+    async function sendData() {
+        const statusEl = document.getElementById('status');
+        statusEl.style.color = "var(--primary)";
+        statusEl.innerText = "送信中...";
+
+        const isAllDay = document.getElementById('all_day').checked;
+        let projectVal = document.getElementById('project').value.trim();
+        if (projectVal === "") projectVal = " "; 
+
+        const dataDict = {
+            project: projectVal, company: document.getElementById('company').value,
+            producer1: document.getElementById('producer1').value, producer2: document.getElementById('producer2').value,
+            pm1: document.getElementById('pm1').value, pm2: document.getElementById('pm2').value,
+            start_time: isAllDay ? "終日" : document.getElementById('start_time').value, end_time: isAllDay ? "" : document.getElementById('end_time').value,
+            worker1: getWorkerValue(1), worker2: getWorkerValue(2), worker3: getWorkerValue(3)
+        };
+
+        // Current状態の更新
+        cloudData.current = dataDict;
+
+        // 会社名の自動追加とソート
+        if (dataDict.company && dataDict.company.trim() !== "") {
+            cloudData.companies = cloudData.companies || [];
+            if (!cloudData.companies.includes(dataDict.company)) {
+                cloudData.companies.push(dataDict.company);
+                cloudData.companies.sort((a, b) => a.localeCompare(b, 'ja')); // 五十音順・アルファベット順
+            }
+        }
+
+        // 履歴の更新ロジック
+        const isClear = (!dataDict.project || dataDict.project===" ") && !dataDict.company && !dataDict.worker1;
+        if (!isClear) {
+            cloudData.history = cloudData.history || [];
+            const coreStr = [dataDict.project, dataDict.company, dataDict.producer1, dataDict.producer2, dataDict.pm1, dataDict.pm2].join("|");
+            
+            // 重複チェック
+            const foundIndex = cloudData.history.findIndex(h => {
+                const r = h.data;
+                return [r.project, r.company, r.producer1, r.producer2, r.pm1, r.pm2].join("|") === coreStr;
+            });
+            if (foundIndex !== -1) {
+                cloudData.history.splice(foundIndex, 1);
+            }
+
+            const now = new Date();
+            const timeStr = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            
+            cloudData.history.unshift({ time: timeStr, data: dataDict }); // 一番上に追加
+            if (cloudData.history.length > 50) cloudData.history = cloudData.history.slice(0, 50); // 最新50件を保持
+        }
+
+        try {
+            await updateGitHubData();
+            statusEl.style.color = isClear ? "var(--text-muted)" : "var(--primary)";
+            statusEl.innerText = isClear ? "iPadを白紙にしました" : "送信に成功、履歴も保存されました";
+            setTimeout(() => { statusEl.innerText = ""; }, 3000);
+        } catch (err) {
+            statusEl.style.color = "#ef4444";
+            statusEl.innerText = "エラーが発生しました: " + err.message;
+        }
+    }
+</script>
+</body>
+</html>
