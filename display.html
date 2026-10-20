@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SCR331 informationboard</title>
+    
+    <link rel="apple-touch-icon" href="SCR331_information_icon.png">
+    <link rel="icon" href="SCR331_information_icon.png">
+    
+    <style>
+        /* ★ 背景画像を haikei.jpg に変更しました */
+        body { margin: 0; padding: 0; background-image: url('haikei.jpg'); background-size: cover; background-position: center; height: 100vh; font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', sans-serif; font-weight: bold; color: #000000; overflow: hidden; position: relative; }
+        .content-box { position: absolute; left: 38%; top: 25%; width: 60%; display: flex; flex-direction: column; align-items: flex-start; gap: 3vh; }
+        .company-client-group { display: flex; flex-direction: column; gap: 0.5vh; }
+        .project { font-size: 5.5vw; }
+        .company { font-size: 2.8vw; }
+        .clients { font-size: 2.8vw; }
+        .time    { font-size: 3.5vw; }
+        .workers { font-size: 2.8vw; }
+        #tilde_time { white-space: pre; }
+        #error_msg { position: absolute; top: 10px; left: 10px; color: red; font-size: 1.5vw; display: none; background: rgba(255,255,255,0.8); padding: 5px; z-index: 100; }
+    </style>
+</head>
+<body>
+    <div id="error_msg">通信エラーが発生しました</div>
+    <div class="content-box">
+        <div class="project" id="project"></div>
+        <div class="company-client-group" id="company_group">
+            <div class="company" id="company"></div>
+            <div class="clients" id="producers"></div>
+            <div class="clients" id="pms"></div>
+        </div>
+        <div class="time" id="time_block">
+            <span id="start_time"></span><span id="tilde_time"></span><span id="end_time"></span>
+        </div>
+        <div class="workers" id="workers"></div>
+    </div>
+
+    <script>
+        // ★ ご自身のGitHub環境に合わせて書き換えてください ★
+        const GITHUB_CONFIG = {
+            token: "YOUR_GITHUB_TOKEN",     // Personal Access Token (repo権限)
+            owner: "YOUR_GITHUB_USERNAME",  // ユーザー名 or Organization名
+            repo: "YOUR_REPOSITORY_NAME",   // リポジトリ名
+            path: "data.json"
+        };
+        const API_URL = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+
+        const formatNames = (n1, n2) => [n1, n2].filter(Boolean).map(n => `${n} 様`).join(" / ");
+        const formatWorkers = (w1, w2, w3) => {
+            const arr = [w1, w2, w3].filter(Boolean);
+            if (arr.length === 3) return `${w1} / ${w2.split(" ")[0]}・${w3.split(" ")[0]}`;
+            return arr.join(" / ");
+        };
+        const updateUI = (id, text) => {
+            const el = document.getElementById(id);
+            el.innerText = text || "";
+            el.style.display = text ? "block" : "none";
+        };
+
+        async function fetchSignageData() {
+            if (GITHUB_CONFIG.token === "YOUR_GITHUB_TOKEN") return;
+            try {
+                const res = await fetch(API_URL, {
+                    headers: {
+                        "Authorization": `token ${GITHUB_CONFIG.token}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "Cache-Control": "no-cache"
+                    }
+                });
+                if (!res.ok) throw new Error("データ取得失敗");
+                
+                const jsonRes = await res.json();
+                const cloudData = JSON.parse(decodeURIComponent(escape(atob(jsonRes.content))));
+                const data = cloudData.current || {};
+                
+                document.getElementById('error_msg').style.display = 'none';
+                updateUI('project', data.project);
+                updateUI('company', data.company);
+                
+                const prodText = formatNames(data.producer1, data.producer2);
+                const pmText = formatNames(data.pm1, data.pm2);
+                updateUI('producers', prodText);
+                updateUI('pms', pmText);
+                
+                document.getElementById('company_group').style.display = (data.company || prodText || pmText) ? "flex" : "none";
+
+                const timeBlock = document.getElementById('time_block');
+                if (!data.start_time && !data.end_time) {
+                    timeBlock.style.display = "none";
+                } else {
+                    timeBlock.style.display = "block";
+                    document.getElementById('start_time').innerText = data.start_time || "";
+                    document.getElementById('end_time').innerText = data.end_time || "";
+                    document.getElementById('tilde_time').innerText = (data.start_time === "終日") ? "" : " 〜 ";
+                }
+                updateUI('workers', formatWorkers(data.worker1, data.worker2, data.worker3));
+            } catch (err) {
+                document.getElementById('error_msg').innerText = "通信エラー: " + err.message;
+                document.getElementById('error_msg').style.display = 'block';
+            }
+        }
+
+        setInterval(fetchSignageData, 10000); 
+        fetchSignageData();
+    </script>
+</body>
+</html>
