@@ -1,15 +1,15 @@
 {
   "current": {
-    "worker3": "",
-    "producer2": "岡田",
-    "company": "電通クリエイティブピクチャーズ",
-    "start_time": "10:00",
-    "worker1": "平林 裕大",
-    "project": "テスト案件",
-    "pm1": "矢野",
     "producer1": "藤川",
+    "worker2": "矢崎 紘亮",
+    "start_time": "7:00",
     "pm2": "金本",
-    "end_time": "24:00",
-    "worker2": "長沼 勝大"
+    "pm1": "矢野",
+    "worker1": "足立 悠介",
+    "worker3": "",
+    "project": "阪神タイガース",
+    "producer2": "岡田",
+    "company": "AOI Pro.",
+    "end_time": "26:00"
   }
 }
