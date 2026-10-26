@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SCR331 informationboard</title>
-    
     <link rel="apple-touch-icon" href="SCR331_information_icon.png">
     <link rel="icon" href="SCR331_information_icon.png">
-    
     <style>
-        /* ★ 背景画像を haikei.jpg に変更しました */
         body { margin: 0; padding: 0; background-image: url('haikei.jpg'); background-size: cover; background-position: center; height: 100vh; font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', sans-serif; font-weight: bold; color: #000000; overflow: hidden; position: relative; }
         .content-box { position: absolute; left: 38%; top: 25%; width: 60%; display: flex; flex-direction: column; align-items: flex-start; gap: 3vh; }
         .company-client-group { display: flex; flex-direction: column; gap: 0.5vh; }
@@ -38,14 +35,8 @@
     </div>
 
     <script>
-        // ★ ご自身のGitHub環境に合わせて書き換えてください ★
-        const GITHUB_CONFIG = {
-            token: "ghp_+FRQ3dGYzA5LvuKLNZgZG4DCDY8tZLk27ZJKP",     // Personal Access Token (repo権限)
-            owner: "iPad-signage",  // ユーザー名 or Organization名
-            repo: "SCR331-kanban",   // リポジトリ名
-            path: "data.json"
-        };
-        const API_URL = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.path}`;
+        // ★ トークン不要。GitHubのリポジトリから直接生データを取得します
+        const RAW_DATA_URL = "https://raw.githubusercontent.com/iPad-signage/SCR331-kanban/main/data.json";
 
         const formatNames = (n1, n2) => [n1, n2].filter(Boolean).map(n => `${n} 様`).join(" / ");
         const formatWorkers = (w1, w2, w3) => {
@@ -60,23 +51,16 @@
         };
 
         async function fetchSignageData() {
-            if (GITHUB_CONFIG.token === "YOUR_GITHUB_TOKEN") return;
             try {
-                const res = await fetch(API_URL, {
-                    headers: {
-                        "Authorization": `token ${GITHUB_CONFIG.token}`,
-                        "Accept": "application/vnd.github.v3+json",
-                        "Cache-Control": "no-cache"
-                    }
-                });
+                // キャッシュを防ぐためにタイムスタンプを付与
+                const res = await fetch(RAW_DATA_URL + "?t=" + new Date().getTime());
                 if (!res.ok) throw new Error("データ取得失敗");
                 
-                const jsonRes = await res.json();
-                const cloudData = JSON.parse(decodeURIComponent(escape(atob(jsonRes.content))));
+                const cloudData = await res.json();
                 const data = cloudData.current || {};
                 
                 document.getElementById('error_msg').style.display = 'none';
-                updateUI('project', data.project);
+                updateUI('project', data.project === " " ? "" : data.project);
                 updateUI('company', data.company);
                 
                 const prodText = formatNames(data.producer1, data.producer2);
