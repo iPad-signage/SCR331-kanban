@@ -36,8 +36,8 @@
 
     <script>
         // ★ トークン不要。GitHubのリポジトリから直接生データを取得します
-        const RAW_DATA_URL = "https://raw.githubusercontent.com/iPad-signage/SCR331-kanban/main/data.json";
-
+        const RAW_DATA_URL = "https://iPad-signage.github.io/SCR331-kanban/data.json";
+        
         const formatNames = (n1, n2) => [n1, n2].filter(Boolean).map(n => `${n} 様`).join(" / ");
         const formatWorkers = (w1, w2, w3) => {
             const arr = [w1, w2, w3].filter(Boolean);
