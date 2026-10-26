@@ -1,15 +1,15 @@
 {
   "current": {
-    "producer1": "藤川",
-    "worker2": "矢崎 紘亮",
-    "start_time": "7:00",
-    "pm2": "金本",
     "pm1": "矢野",
+    "worker2": "矢崎 紘亮",
     "worker1": "足立 悠介",
-    "worker3": "",
+    "pm2": "金本",
+    "start_time": "終日",
     "project": "阪神タイガース",
-    "producer2": "岡田",
     "company": "AOI Pro.",
-    "end_time": "26:00"
+    "producer2": "岡田",
+    "producer1": "藤川",
+    "end_time": "",
+    "worker3": ""
   }
 }
