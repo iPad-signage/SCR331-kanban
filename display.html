@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- ★ここがフルスクリーンWebアプリ化の魔法のタグです -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SCR看板">
+    
     <title>SCR331 informationboard</title>
     <link rel="apple-touch-icon" href="SCR331_information_icon.png">
     <link rel="icon" href="SCR331_information_icon.png">
@@ -35,9 +41,8 @@
     </div>
 
     <script>
-        // ★ トークン不要。GitHubのリポジトリから直接生データを取得します
         const RAW_DATA_URL = "https://iPad-signage.github.io/SCR331-kanban/data.json";
-        
+
         const formatNames = (n1, n2) => [n1, n2].filter(Boolean).map(n => `${n} 様`).join(" / ");
         const formatWorkers = (w1, w2, w3) => {
             const arr = [w1, w2, w3].filter(Boolean);
@@ -52,7 +57,6 @@
 
         async function fetchSignageData() {
             try {
-                // キャッシュを防ぐためにタイムスタンプを付与
                 const res = await fetch(RAW_DATA_URL + "?t=" + new Date().getTime());
                 if (!res.ok) throw new Error("データ取得失敗");
                 
