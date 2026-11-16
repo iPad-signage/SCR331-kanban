@@ -1,15 +1,15 @@
 {
   "current": {
-    "company": "ワンダーラボラトリー",
+    "pm1": " ",
     "worker1": "平田 藍",
     "worker3": " ",
-    "pm1": " ",
-    "producer2": "佐々木",
     "end_time": " ",
-    "project": " ",
-    "producer1": "小早川",
-    "pm2": " ",
+    "start_time": "終日",
     "worker2": " ",
-    "start_time": " "
+    "project": "テスト",
+    "pm2": " ",
+    "producer1": "小早川",
+    "company": "ワンダーラボラトリー",
+    "producer2": "佐々木"
   }
 }
