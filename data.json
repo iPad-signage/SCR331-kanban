@@ -1,15 +1,15 @@
 {
   "current": {
-    "worker1": "平田 藍",
+    "company": "",
+    "end_time": "",
+    "project": " ",
     "worker3": "",
-    "worker2": "平林 裕大",
-    "end_time": "30:00",
-    "producer2": "佐々木",
-    "project": "TEST",
-    "pm1": "テスト",
-    "pm2": "テスト",
-    "producer1": "小早川",
-    "start_time": "6:00",
-    "company": "ワンダーラボラトリー"
+    "start_time": "",
+    "producer2": "",
+    "worker2": "",
+    "pm2": "",
+    "pm1": "",
+    "worker1": "",
+    "producer1": ""
   }
 }
