@@ -21,7 +21,7 @@
         .project { font-size: 5.5vw; line-height: 1.2; }
         .company { font-size: 2.8vw; line-height: 1.2; }
         .clients { font-size: 2.8vw; line-height: 1.2; }
-        .time    { font-size: 3.5vw; line-height: 1.2; }
+        .time    { font-size: 3.5vw; line-height: 1.2; } /* 基本サイズは3.5vw */
         .workers { font-size: 2.8vw; line-height: 1.2; }
         
         #error_msg { position: absolute; top: 10px; left: 10px; color: red; font-size: 1.5vw; display: none; background: rgba(255,255,255,0.8); padding: 5px; z-index: 100; }
@@ -88,14 +88,22 @@
                 
                 // 時間の処理（空ならスペース、終日なら終日、それ以外は 〜 を入れる）
                 let timeText = "";
+                const timeBlockEl = document.getElementById('time_block');
                 if (!isEmpty(data.start_time) || !isEmpty(data.end_time)) {
                     if (data.start_time === "終日") {
                         timeText = "終日";
+                        // 終日の場合のみ、担当者と同じサイズ（2.8vw）に変更
+                        timeBlockEl.style.fontSize = "2.8vw";
                     } else {
                         const st = isEmpty(data.start_time) ? "" : data.start_time;
                         const et = isEmpty(data.end_time) ? "" : data.end_time;
                         timeText = `${st} 〜 ${et}`;
+                        // 通常の時間の時は元のサイズ（3.5vw）に戻す
+                        timeBlockEl.style.fontSize = "";
                     }
+                } else {
+                    // 空欄の時も元のサイズに戻す
+                    timeBlockEl.style.fontSize = "";
                 }
                 updateUI('time_block', timeText);
                 
