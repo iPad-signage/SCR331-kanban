@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
-    <!-- ★ここがフルスクリーンWebアプリ化の魔法のタグです -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SCR看板">
@@ -14,14 +13,19 @@
     <link rel="icon" href="SCR331_information_icon.png">
     <style>
         body { margin: 0; padding: 0; background-image: url('haikei.jpg'); background-size: cover; background-position: center; height: 100vh; font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', sans-serif; font-weight: bold; color: #000000; overflow: hidden; position: relative; }
-        .content-box { position: absolute; left: 38%; top: 25%; width: 60%; display: flex; flex-direction: column; align-items: flex-start; gap: 3vh; }
+        
+        /* 
+           ★ height: 55vh; を指定して全体の縦幅を固定し、
+           ★ justify-content: space-between; を指定して間隔を自動で均等に広げます 
+        */
+        .content-box { position: absolute; left: 38%; top: 25%; width: 60%; height: 55vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; }
+        
         .company-client-group { display: flex; flex-direction: column; gap: 0.5vh; }
         
-        /* 高さを強制的に維持するために line-height を設定しています */
         .project { font-size: 5.5vw; line-height: 1.2; }
         .company { font-size: 2.8vw; line-height: 1.2; }
         .clients { font-size: 2.8vw; line-height: 1.2; }
-        .time    { font-size: 3.5vw; line-height: 1.2; } /* 基本サイズは3.5vw */
+        .time    { font-size: 3.5vw; line-height: 1.2; }
         .workers { font-size: 2.8vw; line-height: 1.2; }
         
         #error_msg { position: absolute; top: 10px; left: 10px; color: red; font-size: 1.5vw; display: none; background: rgba(255,255,255,0.8); padding: 5px; z-index: 100; }
@@ -36,7 +40,6 @@
             <div class="clients" id="producers"></div>
             <div class="clients" id="pms"></div>
         </div>
-        <!-- 時間ブロックはJS側でまとめてテキストを生成するようにシンプル化しました -->
         <div class="time" id="time_block"></div>
         <div class="workers" id="workers"></div>
     </div>
@@ -44,11 +47,9 @@
     <script>
         const RAW_DATA_URL = "https://iPad-signage.github.io/SCR331-kanban/data.json";
 
-        // 値が空（またはスペースのみ）かどうかを判定する関数
         const isEmpty = (str) => !str || str.trim() === "";
 
         const formatNames = (n1, n2) => {
-            // 空のデータを取り除いてから「様」をつける
             const validNames = [n1, n2].filter(n => !isEmpty(n)).map(n => n.trim());
             if (validNames.length === 0) return "";
             return validNames.map(n => `${n} 様`).join(" / ");
@@ -63,10 +64,11 @@
         
         const updateUI = (id, text) => {
             const el = document.getElementById(id);
-            // 表示を none にすると上に詰まってしまうため、空の場合は透明なスペース(&nbsp;)を入れて高さを確保します
+            // ★ 空の場合は要素自体を非表示にし、文字がある場合のみ表示する仕様に戻しました
             if (isEmpty(text)) {
-                el.innerHTML = "&nbsp;";
+                el.style.display = "none";
             } else {
+                el.style.display = "block";
                 el.innerText = text;
             }
         };
@@ -86,23 +88,27 @@
                 updateUI('producers', formatNames(data.producer1, data.producer2));
                 updateUI('pms', formatNames(data.pm1, data.pm2));
                 
-                // 時間の処理（空ならスペース、終日なら終日、それ以外は 〜 を入れる）
+                // 会社・PD・PMのグループ要素自体の表示制御
+                const compGroup = document.getElementById('company_group');
+                if (isEmpty(data.company) && isEmpty(formatNames(data.producer1, data.producer2)) && isEmpty(formatNames(data.pm1, data.pm2))) {
+                    compGroup.style.display = "none";
+                } else {
+                    compGroup.style.display = "flex";
+                }
+                
                 let timeText = "";
                 const timeBlockEl = document.getElementById('time_block');
                 if (!isEmpty(data.start_time) || !isEmpty(data.end_time)) {
                     if (data.start_time === "終日") {
                         timeText = "終日";
-                        // 終日の場合のみ、担当者と同じサイズ（2.8vw）に変更
                         timeBlockEl.style.fontSize = "2.8vw";
                     } else {
                         const st = isEmpty(data.start_time) ? "" : data.start_time;
                         const et = isEmpty(data.end_time) ? "" : data.end_time;
                         timeText = `${st} 〜 ${et}`;
-                        // 通常の時間の時は元のサイズ（3.5vw）に戻す
                         timeBlockEl.style.fontSize = "";
                     }
                 } else {
-                    // 空欄の時も元のサイズに戻す
                     timeBlockEl.style.fontSize = "";
                 }
                 updateUI('time_block', timeText);
