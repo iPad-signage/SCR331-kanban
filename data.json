@@ -1,15 +1,15 @@
 {
   "current": {
+    "producer2": "テスト2",
     "pm1": "PMテスト1",
-    "pm2": "PMテスト2",
-    "start_time": "終日",
-    "worker3": " ",
-    "project": "テスト",
-    "worker2": " ",
-    "end_time": " ",
-    "worker1": "平林 裕大",
     "company": "TREE Digital Studio",
-    "producer1": "テスト1",
-    "producer2": "テスト2"
+    "project": "テスト",
+    "pm2": "PMテスト2",
+    "worker3": " ",
+    "end_time": "14:00",
+    "start_time": "9:30",
+    "worker1": "平林 裕大",
+    "worker2": " ",
+    "producer1": "テスト1"
   }
 }
