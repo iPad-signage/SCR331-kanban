@@ -1,15 +1,15 @@
 {
   "current": {
-    "worker1": "",
-    "project": "",
-    "worker3": "",
-    "end_time": "",
+    "start_time": "終日",
     "producer1": "",
-    "start_time": "",
-    "pm1": "",
-    "company": "",
     "worker2": "",
+    "company": "",
+    "worker1": "薬袋 未来",
+    "end_time": "",
+    "pm1": "",
+    "producer2": "",
+    "worker3": "",
     "pm2": "",
-    "producer2": ""
+    "project": "山口組"
   }
 }
