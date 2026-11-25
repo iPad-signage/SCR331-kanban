@@ -1,15 +1,15 @@
 {
   "current": {
-    "pm1": " ",
-    "start_time": " ",
-    "producer1": " ",
-    "producer2": " ",
-    "worker3": " ",
-    "company": " ",
-    "worker2": " ",
-    "project": " ",
-    "end_time": " ",
-    "worker1": " ",
-    "pm2": " "
+    "worker1": "",
+    "project": "",
+    "worker3": "",
+    "end_time": "",
+    "producer1": "",
+    "start_time": "",
+    "pm1": "",
+    "company": "",
+    "worker2": "",
+    "pm2": "",
+    "producer2": ""
   }
 }
