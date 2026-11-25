@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SCR看板">
-    
+
     <title>SCR331 informationboard</title>
     <link rel="apple-touch-icon" href="SCR331_information_icon.png">
     <link rel="icon" href="SCR331_information_icon.png">
     <style>
         body { margin: 0; padding: 0; background-image: url('haikei.jpg'); background-size: cover; background-position: center; height: 100vh; font-family: 'DIN', 'DIN Alternate', '游ゴシック体', 'YuGothic', sans-serif; font-weight: bold; color: #000000; overflow: hidden; position: relative; }
-        
-        /* 
-           ★ justify-content: center; に変更し、枠のど真ん中に集まるようにしました。
-           ★ gap: 3vh; を追加し、各ブロック間のデフォルトの隙間をキープします。
-        */
+
+        /* 縦中央寄せ。空欄が2つ以下のときは全スロットを確保して位置固定、
+           3つ以上のときは空スロットを詰めて中央に寄せる（JS側で切替） */
         .content-box { position: absolute; left: 38%; top: 25%; width: 60%; height: 55vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3vh; }
-        
+
         .company-client-group { display: flex; flex-direction: column; gap: 0.5vh; }
-        
+
         .project { font-size: 5.5vw; line-height: 1.2; }
-        /* ★ 会社名のサイズを 2.8vw から 3.5vw に少し大きくしました */
         .company { font-size: 3.5vw; line-height: 1.2; }
         .clients { font-size: 2.8vw; line-height: 1.2; }
         .time    { font-size: 3.5vw; line-height: 1.2; }
         .workers { font-size: 2.8vw; line-height: 1.2; }
-        
+
+        /* 行の高さは確保して、文字だけ見えなくする */
+        .slot-empty { visibility: hidden; }
+
         #error_msg { position: absolute; top: 10px; left: 10px; color: red; font-size: 1.5vw; display: none; background: rgba(255,255,255,0.8); padding: 5px; z-index: 100; }
+        #version { position: absolute; right: 8px; bottom: 6px; font-size: 10px; font-weight: normal; opacity: 0.3; }
     </style>
 </head>
 <body>
@@ -44,84 +45,94 @@
         <div class="time" id="time_block"></div>
         <div class="workers" id="workers"></div>
     </div>
+    <div id="version"></div>
 
     <script>
+        const VERSION = "2026.11.25-1";
         const RAW_DATA_URL = "https://iPad-signage.github.io/SCR331-kanban/data.json";
+        // 空欄が何個以上になったら「詰めて中央寄せ」にするか
+        const COMPACT_THRESHOLD = 3;
 
-        const isEmpty = (str) => !str || str.trim() === "";
+        document.getElementById('version').innerText = "v" + VERSION;
+
+        // 前後の空白（半角/全角スペース、NBSP、ゼロ幅文字など）を除去。null/undefined は ""
+        const clean = (v) => v == null ? "" : String(v).replace(/^[\s​-‍⁠﻿]+|[\s​-‍⁠﻿]+$/g, "");
 
         const formatNames = (n1, n2) => {
-            const validNames = [n1, n2].filter(n => !isEmpty(n)).map(n => n.trim());
-            if (validNames.length === 0) return "";
-            return validNames.map(n => `${n} 様`).join(" / ");
+            return [n1, n2].map(clean).filter(n => n !== "").map(n => `${n} 様`).join(" / ");
         };
-        
+
         const formatWorkers = (w1, w2, w3) => {
-            const validWorkers = [w1, w2, w3].filter(w => !isEmpty(w)).map(w => w.trim());
-            if (validWorkers.length === 0) return "";
-            if (validWorkers.length === 3) return `${validWorkers[0]} / ${validWorkers[1].split(" ")[0]}・${validWorkers[2].split(" ")[0]}`;
-            return validWorkers.join(" / ");
-        };
-        
-        const updateUI = (id, text) => {
-            const el = document.getElementById(id);
-            if (isEmpty(text)) {
-                el.style.display = "none";
-            } else {
-                el.style.display = "block";
-                el.innerText = text;
+            const ws = [w1, w2, w3].map(clean).filter(w => w !== "");
+            if (ws.length === 3) {
+                const family = (n) => n.split(/\s+/)[0]; // 半角・全角スペースどちらでも分割
+                return `${ws[0]} / ${family(ws[1])}・${family(ws[2])}`;
             }
+            return ws.join(" / ");
         };
+
+        const formatTime = (start, end) => {
+            const st = clean(start), et = clean(end);
+            if (st === "終日") return { text: "終日", small: true };
+            if (!st && !et) return { text: "", small: false };
+            if (st && et) return { text: `${st} 〜 ${et}`, small: false };
+            return { text: st ? `${st} 〜` : `〜 ${et}`, small: false };
+        };
+
+        function render(data) {
+            const time = formatTime(data.start_time, data.end_time);
+            const timeEl = document.getElementById('time_block');
+            timeEl.style.fontSize = time.small ? "2.8vw" : "";
+
+            // 表示順の6スロット
+            const slots = [
+                { id: 'project',    text: clean(data.project) },
+                { id: 'company',    text: clean(data.company) },
+                { id: 'producers',  text: formatNames(data.producer1, data.producer2) },
+                { id: 'pms',        text: formatNames(data.pm1, data.pm2) },
+                { id: 'time_block', text: time.text },
+                { id: 'workers',    text: formatWorkers(data.worker1, data.worker2, data.worker3) }
+            ];
+
+            const emptyCount = slots.filter(s => s.text === "").length;
+            const compact = emptyCount >= COMPACT_THRESHOLD;
+
+            slots.forEach(s => {
+                const el = document.getElementById(s.id);
+                if (s.text !== "") {
+                    el.style.display = "block";
+                    el.classList.remove('slot-empty');
+                    el.innerText = s.text;
+                } else if (compact) {
+                    el.style.display = "none";          // 詰める
+                    el.innerText = "";
+                } else {
+                    el.style.display = "block";          // 位置固定（高さだけ確保）
+                    el.classList.add('slot-empty');
+                    el.innerText = " ";
+                }
+            });
+
+            // 会社・PD・PMのグループは、詰めモードで3つとも空のときだけ非表示
+            const groupEmpty = slots[1].text === "" && slots[2].text === "" && slots[3].text === "";
+            document.getElementById('company_group').style.display = (compact && groupEmpty) ? "none" : "flex";
+        }
 
         async function fetchSignageData() {
             try {
-                const res = await fetch(RAW_DATA_URL + "?t=" + new Date().getTime());
+                const res = await fetch(RAW_DATA_URL + "?t=" + new Date().getTime(), { cache: "no-store" });
                 if (!res.ok) throw new Error("データ取得失敗");
-                
+
                 const cloudData = await res.json();
-                const data = cloudData.current || {};
-                
                 document.getElementById('error_msg').style.display = 'none';
-                
-                updateUI('project', data.project);
-                updateUI('company', data.company);
-                updateUI('producers', formatNames(data.producer1, data.producer2));
-                updateUI('pms', formatNames(data.pm1, data.pm2));
-                
-                // 会社・PD・PMのグループ要素自体の表示制御
-                const compGroup = document.getElementById('company_group');
-                if (isEmpty(data.company) && isEmpty(formatNames(data.producer1, data.producer2)) && isEmpty(formatNames(data.pm1, data.pm2))) {
-                    compGroup.style.display = "none";
-                } else {
-                    compGroup.style.display = "flex";
-                }
-                
-                let timeText = "";
-                const timeBlockEl = document.getElementById('time_block');
-                if (!isEmpty(data.start_time) || !isEmpty(data.end_time)) {
-                    if (data.start_time === "終日") {
-                        timeText = "終日";
-                        timeBlockEl.style.fontSize = "2.8vw";
-                    } else {
-                        const st = isEmpty(data.start_time) ? "" : data.start_time;
-                        const et = isEmpty(data.end_time) ? "" : data.end_time;
-                        timeText = `${st} 〜 ${et}`;
-                        timeBlockEl.style.fontSize = "";
-                    }
-                } else {
-                    timeBlockEl.style.fontSize = "";
-                }
-                updateUI('time_block', timeText);
-                
-                updateUI('workers', formatWorkers(data.worker1, data.worker2, data.worker3));
-                
+                render(cloudData.current || {});
             } catch (err) {
                 document.getElementById('error_msg').innerText = "通信エラー: " + err.message;
                 document.getElementById('error_msg').style.display = 'block';
             }
         }
 
-        setInterval(fetchSignageData, 10000); 
+        setInterval(fetchSignageData, 10000);
         fetchSignageData();
     </script>
 </body>
