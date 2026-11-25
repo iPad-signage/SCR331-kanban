@@ -1,15 +1,15 @@
 {
   "current": {
-    "producer2": "",
-    "worker1": "",
-    "end_time": "",
-    "worker2": "",
-    "producer1": "",
-    "project": "",
+    "start_time": "終日",
+    "worker3": "",
     "pm2": "",
-    "start_time": "",
-    "pm1": "",
+    "worker1": "薬袋 未来",
+    "worker2": "",
     "company": "",
-    "worker3": ""
+    "pm1": "",
+    "producer1": "白石 晃士",
+    "project": "山口組",
+    "end_time": "",
+    "producer2": "古賀 奏一郎"
   }
 }
