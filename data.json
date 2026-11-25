@@ -1,15 +1,15 @@
 {
   "current": {
-    "end_time": " ",
-    "producer1": " ",
+    "start_time": "終日",
     "pm2": " ",
-    "worker2": " ",
     "pm1": " ",
     "company": " ",
-    "project": "山口組",
-    "start_time": "終日",
-    "producer2": " ",
     "worker1": "薬袋 未来",
+    "end_time": " ",
+    "producer2": " ",
+    "producer1": " ",
+    "worker2": " ",
+    "project": "TREE Digital Studio",
     "worker3": " "
   }
 }
